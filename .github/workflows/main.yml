@@ -1,0 +1,37 @@
+name: Remote update on a server and notification
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using password
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+                   bash pullcode.sh
+                   
+  sendmail:
+     name: send-mail
+     needs: "build"
+     runs-on: ubuntu-latest
+     steps:
+     - name: send amail
+       uses: dawidd6/action-send-mail@v3
+       with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{secrets.MAIL_USERNAME}}
+        password: ${{secrets.MAIL_PASSWORD}}
+        subject: Github Actions job result
+        to: onefmdevops@gmail.com,radhia.gharsallah@gmail.com
+        from: radhia Gharsallah
+        body: update code to server ${{github.repository}} completed successfully!
+        priority: low               
